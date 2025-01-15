@@ -110,7 +110,7 @@ https://github.com/user-attachments/assets/53470cf3-f6a3-40a3-9c47-69f9a7b0d2e6
 **Table Definitions**
 
 - Description Table:
-  ```
+```
   CREATE TABLE description (
      vehicle_id BIGINT,
      driver_name STRING,
@@ -123,10 +123,10 @@ https://github.com/user-attachments/assets/53470cf3-f6a3-40a3-9c47-69f9a7b0d2e6
      'properties.bootstrap.servers' = 'kafka:9094',
      'format' = 'json'
  );
-  ```
+```
 
 - Location Table:
-  ```
+```
   CREATE TABLE location (
     vehicle_id BIGINT,
     latitude DOUBLE,
@@ -140,10 +140,10 @@ https://github.com/user-attachments/assets/53470cf3-f6a3-40a3-9c47-69f9a7b0d2e6
     'properties.bootstrap.servers' = 'kafka:9094',
     'format' = 'json'
   );
-  ```
+```
 
 - Sensor Table:
-  ```
+```
   CREATE TABLE sensor (
     vehicle_id BIGINT,
     engine_temperature INT,
@@ -156,7 +156,7 @@ https://github.com/user-attachments/assets/53470cf3-f6a3-40a3-9c47-69f9a7b0d2e6
     'properties.bootstrap.servers' = 'kafka:9094',
     'format' = 'json'
   );
-  ```
+```
 
 **Merged View**
 ```
@@ -185,7 +185,7 @@ ON
 **Export to Elasticsearch**
 
 - Create Elasticsearch Table:
-  ```
+```
   CREATE TABLE merged_view_fleet_es (
     vehicle_id BIGINT,
     latitude DOUBLE,
@@ -204,10 +204,10 @@ ON
     'format' = 'json', -- Data format
     'sink.bulk-flush.max-actions' = '1' -- Immediate flush for testing (adjust for production)
   );
-  ```
+```
 
 - Insert Data:
-  ```
+```
   INSERT INTO merged_view_fleet_es
   SELECT 
     vehicle_id,
@@ -220,7 +220,7 @@ ON
     COALESCE(average_rpm, 0) AS average_rpm, -- Replace null with 0
     CURRENT_TIMESTAMP AS proctime
   FROM merged_view_fleet;
-  ```
+```
 
 
 
