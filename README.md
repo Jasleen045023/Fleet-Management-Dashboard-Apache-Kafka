@@ -14,16 +14,13 @@ Key tasks included defining the schema for each dataset in Avro format, streamin
 
 
 <h1>Learning Objectives</h1>
-
-Data Integration with Kafka: Acquired knowledge on how to use Kafka for integrating multiple datasets in Avro format, enabling real-time data processing and streaming.
-
-Avro Schema Design: Learned to define and implement Avro schemas for datasets, ensuring accurate data serialization and compatibility.
-
-Kibana Visualizations: Gained proficiency in creating dashboards using Kibana, with various charts like line graphs, bar graphs, and gauges to display insights.
-
-Real-Time Analytics: Enhanced understanding of setting up real-time analytics pipelines, including data ingestion, processing, and visualization.
-
-Ubuntu CLI Operations: Acquired hands-on experience managing and executing commands on Ubuntu for installing and running Kafka, Kibana, and related tools.
+<ol>
+<li>Data Integration with Kafka: Acquired knowledge on how to use Kafka for integrating multiple datasets in Avro format, enabling real-time data processing and streaming.</li>
+<li>Avro Schema Design: Learned to define and implement Avro schemas for datasets, ensuring accurate data serialization and compatibility.</li>
+<li>Kibana Visualizations: Gained proficiency in creating dashboards using Kibana, with various charts like line graphs, bar graphs, and gauges to display insights.</li>
+<li>Real-Time Analytics: Enhanced understanding of setting up real-time analytics pipelines, including data ingestion, processing, and visualization.</li>
+<li>Ubuntu CLI Operations: Acquired hands-on experience managing and executing commands on Ubuntu for installing and running Kafka, Kibana, and related tools.</li>
+</ol>
 
 
 
