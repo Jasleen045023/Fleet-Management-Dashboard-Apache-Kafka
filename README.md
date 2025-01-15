@@ -76,13 +76,12 @@ https://github.com/user-attachments/assets/53470cf3-f6a3-40a3-9c47-69f9a7b0d2e6
 
 
 <h1>Implementation Workflow</h1>
-** 1. Transforming Data to JSON Format **
+**## 1. Transforming Data to JSON Format**
 
 - Script: Use the convert.py script to transform raw data into JSON key-value pairs.
 
 - Command:
-
-python /home/ashok/Documents/fake/convert.py
+  python /home/ashok/Documents/fake/convert.py
 
 - Input: Provide the full path of the JSON file (e.g., desc.json).
 
