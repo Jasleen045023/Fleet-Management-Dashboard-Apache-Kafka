@@ -13,27 +13,6 @@ Key tasks included defining the schema for each dataset in Avro format, streamin
 
 
 
-<h1>Table of Contents</h1>
-
-1. [Learning Objectives](Learning Objectives)  
-2. [Objectives](#2-objectives)  
-3. [Key Findings](#3-key-findings)  
-   1. [Impact of Adaptation Strategies by Region](#1-impact-of-adaptation-strategies-by-region)  
-   2. [Economic Impact Distribution by Country](#2-economic-impact-distribution-by-country)  
-   3. [CO₂ Emissions Over Time by Region](#3-co₂-emissions-over-time-by-region)  
-   4. [Frequency of Extreme Weather Events by Region and Crop Type](#4-frequency-of-extreme-weather-events-by-region-and-crop-type)  
-   5. [Pesticide Use by Region and Crop Type](#5-pesticide-use-by-region-and-crop-type)  
-   6. [Economic Impact by Country and Adaptation Strategies](#6-economic-impact-by-country-and-adaptation-strategies)  
-   7. [Fertilizer Use by Region](#7-fertilizer-use-by-region)  
-   8. [Crop Yield Trends by Type](#8-crop-yield-trends-by-type)  
-   9. [Soil Health and Precipitation by Region](#9-soil-health-and-precipitation-by-region)  
-   10. [Irrigation Percentage by Region](#10-irrigation-percentage-by-region)  
-4. [Managerial Insights](#4-managerial-insights)  
-5. [Conclusion](#5-conclusion)  
-6. [License](#6-license)
-
-
-
 <h1>Learning Objectives</h1>
 <ol>
 <li>Data Integration with Kafka: Acquired knowledge on how to use Kafka for integrating multiple datasets in Avro format, enabling real-time data processing and streaming.</li>
@@ -97,6 +76,147 @@ https://github.com/user-attachments/assets/53470cf3-f6a3-40a3-9c47-69f9a7b0d2e6
 
 
 <h1>Implementation Workflow</h1>
+Transforming Data to JSON Format
+
+Script: Use the convert.py script to transform raw data into JSON key-value pairs.
+
+Command:
+
+python /home/ashok/Documents/fake/convert.py
+
+Input: Provide the full path of the JSON file (e.g., desc.json).
+
+Feeding Data into Kafka
+
+Start Docker: Ensure Docker is running.
+
+Command: Use gen_sample.sh to pipe the JSON data into a Kafka topic (e.g., fm1).
+
+./start_flink_nodatagen.sh
+./gen_sample.sh /home/ashok/Documents/gendata/rev_desc.json | kafkacat -b localhost:9092 -t fm1 -K: -P
+
+Validation: Open a new terminal and use the consumer script to check data flow:
+
+./consumer.sh fm1
+
+SQL Table Creation and Data Processing
+
+Table Definitions
+
+Description Table:
+
+CREATE TABLE description (
+    vehicle_id BIGINT,
+    driver_name STRING,
+    license_plate STRING,
+    proctime AS PROCTIME() -- Only use processing time
+) WITH (
+    'connector' = 'kafka',
+    'topic' = 'fm1',
+    'scan.startup.mode' = 'earliest-offset',
+    'properties.bootstrap.servers' = 'kafka:9094',
+    'format' = 'json'
+);
+
+Location Table:
+
+CREATE TABLE location (
+    vehicle_id BIGINT,
+    latitude DOUBLE,
+    longitude DOUBLE,
+    ts BIGINT,
+    proctime AS PROCTIME() -- Only use processing time
+) WITH (
+    'connector' = 'kafka',
+    'topic' = 'fm2',
+    'scan.startup.mode' = 'earliest-offset',
+    'properties.bootstrap.servers' = 'kafka:9094',
+    'format' = 'json'
+);
+
+Sensor Table:
+
+CREATE TABLE sensor (
+    vehicle_id BIGINT,
+    engine_temperature INT,
+    average_rpm INT,
+    proctime AS PROCTIME() -- Only use processing time
+) WITH (
+    'connector' = 'kafka',
+    'topic' = 'fm3',
+    'scan.startup.mode' = 'earliest-offset',
+    'properties.bootstrap.servers' = 'kafka:9094',
+    'format' = 'json'
+);
+
+Merged View
+
+CREATE VIEW merged_view_fleet AS
+SELECT 
+    l.vehicle_id,
+    l.latitude,
+    l.longitude,
+    l.ts,
+    d.driver_name,
+    d.license_plate,
+    s.engine_temperature,
+    s.average_rpm
+FROM 
+    location l
+JOIN 
+    description d
+ON 
+    l.vehicle_id = d.vehicle_id
+JOIN 
+    sensor s
+ON 
+    l.vehicle_id = s.vehicle_id;
+
+Export to Elasticsearch
+
+Create Elasticsearch Table:
+CREATE TABLE merged_view_fleet_es (
+    vehicle_id BIGINT,
+    latitude DOUBLE,
+    longitude DOUBLE,
+    ts BIGINT,
+    driver_name STRING,
+    license_plate STRING,
+    engine_temperature INT,
+    average_rpm INT,
+    proctime TIMESTAMP(3)
+) WITH (
+    'connector' = 'elasticsearch-7', -- Elasticsearch connector
+    'hosts' = 'http://elasticsearch:9200', -- Elasticsearch host
+    'index' = 'merged_view_fleet_data', -- Elasticsearch index name
+    'document-id.key-delimiter' = '-', -- Delimiter for document IDs
+    'format' = 'json', -- Data format
+    'sink.bulk-flush.max-actions' = '1' -- Immediate flush for testing (adjust for production)
+);
+
+Insert Data:
+INSERT INTO merged_view_fleet_es
+SELECT 
+    vehicle_id,
+    latitude,
+    longitude,
+    ts,
+    COALESCE(driver_name, 'Unknown') AS driver_name, -- Replace null with "Unknown"
+    COALESCE(license_plate, 'Unknown') AS license_plate, -- Replace null with "Unknown"
+    COALESCE(engine_temperature, 0) AS engine_temperature, -- Replace null with 0
+    COALESCE(average_rpm, 0) AS average_rpm, -- Replace null with 0
+    CURRENT_TIMESTAMP AS proctime
+FROM merged_view_fleet;
+
+
+
+
+
+
+
+
+
+
 Data Generation and Transformation:
 These commands generate synthetic data for the fleet (vehicles, locations, and sensors) and transform it into a usable format for Kafka topics. They simulate real-world streaming data.
 
