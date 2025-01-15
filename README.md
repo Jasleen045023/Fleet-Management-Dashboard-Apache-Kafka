@@ -76,80 +76,90 @@ https://github.com/user-attachments/assets/53470cf3-f6a3-40a3-9c47-69f9a7b0d2e6
 
 
 <h1>Implementation Workflow</h1>
+
 **## 1. Transforming Data to JSON Format**
 
 - Script: Use the convert.py script to transform raw data into JSON key-value pairs.
 
 - Command:
+  ```
   python /home/ashok/Documents/fake/convert.py
+  ```
 
 - Input: Provide the full path of the JSON file (e.g., desc.json).
 
-Feeding Data into Kafka
+**## 2. Feeding Data into Kafka**
 
-Start Docker: Ensure Docker is running.
+- Start Docker: Ensure Docker is running.
 
-Command: Use gen_sample.sh to pipe the JSON data into a Kafka topic (e.g., fm1).
+- Command: Use gen_sample.sh to pipe the JSON data into a Kafka topic (e.g., fm1).
+  ```
+  ./start_flink_nodatagen.sh
+  ```
+  ```
+  ./gen_sample.sh /home/ashok/Documents/gendata/rev_desc.json | kafkacat -b localhost:9092 -t fm1 -K: -P
+  ```
 
-./start_flink_nodatagen.sh
-./gen_sample.sh /home/ashok/Documents/gendata/rev_desc.json | kafkacat -b localhost:9092 -t fm1 -K: -P
+- Validation: Open a new terminal and use the consumer script to check data flow:
+  ```
+  ./consumer.sh fm1
+  ```
 
-Validation: Open a new terminal and use the consumer script to check data flow:
+**## 3. SQL Table Creation and Data Streaming**
 
-./consumer.sh fm1
+**## Table Definitions**
 
-SQL Table Creation and Data Processing
-
-Table Definitions
-
-Description Table:
-
-CREATE TABLE description (
+- Description Table:
+  ```
+  CREATE TABLE description (
     vehicle_id BIGINT,
     driver_name STRING,
     license_plate STRING,
     proctime AS PROCTIME() -- Only use processing time
-) WITH (
+  ) WITH (
     'connector' = 'kafka',
     'topic' = 'fm1',
     'scan.startup.mode' = 'earliest-offset',
     'properties.bootstrap.servers' = 'kafka:9094',
     'format' = 'json'
-);
+  );
+  ```
 
-Location Table:
-
-CREATE TABLE location (
+- Location Table:
+  ```
+  CREATE TABLE location (
     vehicle_id BIGINT,
     latitude DOUBLE,
     longitude DOUBLE,
     ts BIGINT,
     proctime AS PROCTIME() -- Only use processing time
-) WITH (
+  ) WITH (
     'connector' = 'kafka',
     'topic' = 'fm2',
     'scan.startup.mode' = 'earliest-offset',
     'properties.bootstrap.servers' = 'kafka:9094',
     'format' = 'json'
-);
+  );
+  ```
 
-Sensor Table:
-
-CREATE TABLE sensor (
+- Sensor Table:
+  ```
+  CREATE TABLE sensor (
     vehicle_id BIGINT,
     engine_temperature INT,
     average_rpm INT,
     proctime AS PROCTIME() -- Only use processing time
-) WITH (
+  ) WITH (
     'connector' = 'kafka',
     'topic' = 'fm3',
     'scan.startup.mode' = 'earliest-offset',
     'properties.bootstrap.servers' = 'kafka:9094',
     'format' = 'json'
-);
+  );
+  ```
 
-Merged View
-
+**## Merged View**
+```
 CREATE VIEW merged_view_fleet AS
 SELECT 
     l.vehicle_id,
@@ -170,11 +180,13 @@ JOIN
     sensor s
 ON 
     l.vehicle_id = s.vehicle_id;
+```
 
-Export to Elasticsearch
+**## Export to Elasticsearch**
 
-Create Elasticsearch Table:
-CREATE TABLE merged_view_fleet_es (
+- Create Elasticsearch Table:
+  ```
+  CREATE TABLE merged_view_fleet_es (
     vehicle_id BIGINT,
     latitude DOUBLE,
     longitude DOUBLE,
@@ -184,18 +196,20 @@ CREATE TABLE merged_view_fleet_es (
     engine_temperature INT,
     average_rpm INT,
     proctime TIMESTAMP(3)
-) WITH (
+  ) WITH (
     'connector' = 'elasticsearch-7', -- Elasticsearch connector
     'hosts' = 'http://elasticsearch:9200', -- Elasticsearch host
     'index' = 'merged_view_fleet_data', -- Elasticsearch index name
     'document-id.key-delimiter' = '-', -- Delimiter for document IDs
     'format' = 'json', -- Data format
     'sink.bulk-flush.max-actions' = '1' -- Immediate flush for testing (adjust for production)
-);
+  );
+  ```
 
-Insert Data:
-INSERT INTO merged_view_fleet_es
-SELECT 
+- Insert Data:
+  ```
+  INSERT INTO merged_view_fleet_es
+  SELECT 
     vehicle_id,
     latitude,
     longitude,
@@ -205,201 +219,8 @@ SELECT
     COALESCE(engine_temperature, 0) AS engine_temperature, -- Replace null with 0
     COALESCE(average_rpm, 0) AS average_rpm, -- Replace null with 0
     CURRENT_TIMESTAMP AS proctime
-FROM merged_view_fleet;
-
-
-
-
-
-
-
-
-
-
-Data Generation and Transformation:
-These commands generate synthetic data for the fleet (vehicles, locations, and sensors) and transform it into a usable format for Kafka topics. They simulate real-world streaming data.
-
-```
-./start_flink_nodatagen.sh  # Starts the Flink job without data generation
-```
-
-```
-./gendata.sh description2.avro desc.json 10000  # Generates vehicle description data.
-```
-
-```
-python /home/ashok/Documents/fake/convert.py desc.json  # Converts the generated data into the desired format.
-```
-
-```
-./gen_sample.sh /home/ashok/Documents/gendata/rev_desc.json | kafkacat -b localhost:9092 -t fm1 -K: -P  # Streams data to the Kafka topic "fm1".
-```
-
-```
-./consumer.sh fm1  # Consumes and validates the streamed data from Kafka topic "fm1".
-```
-
-```
-./gendata.sh location2.avro loc.json 10000  # Generates vehicle location data.
-```
-
-```
-python /home/ashok/Documents/fake/convert.py loc.json  # Converts the location data into the desired format.
-```
-
-```
-./gen_sample.sh /home/ashok/Documents/gendata/rev_loc.json | kafkacat -b localhost:9092 -t fm2 -K: -P  # Streams data to the Kafka topic "fm2".
-```
-
-```
-./consumer.sh fm2  # Consumes and validates the streamed data from Kafka topic "fm2".
-```
-
-```
-./gendata.sh sensor2.avro sens.json 10000  # Generates sensor data for the fleet.
-```
-
-```
-python /home/ashok/Documents/fake/convert.py sens.json  # Converts the sensor data into the desired format.
-```
-
-```
-./gen_sample.sh /home/ashok/Documents/gendata/rev_sens.json | kafkacat -b localhost:9092 -t fm3 -K: -P  # Streams data to the Kafka topic "fm3".
-```
-
-```
-./consumer.sh fm3  # Consumes and validates the streamed data from Kafka topic "fm3".
-```
-
-SQL Table Creation: 
-Defines structured tables for each data stream (description, location, and sensor) in Kafka. These tables enable querying and joining data using SQL.
-```
-CREATE TABLE description (
-     vehicle_id BIGINT,
-     driver_name STRING,
-     license_plate STRING,
-     proctime AS PROCTIME() -- Only use processing time
- ) WITH (
-     'connector' = 'kafka',
-     'topic' = 'fm1',
-     'scan.startup.mode' = 'earliest-offset',
-     'properties.bootstrap.servers' = 'kafka:9094',
-     'format' = 'json'
- );
-```
-
-```
-SELECT * FROM description;
-```
-
-```
-CREATE TABLE location (
-     vehicle_id BIGINT,
-     latitude DOUBLE,
-     longitude DOUBLE,
-     ts BIGINT,
-     proctime AS PROCTIME() -- Only use processing time
- ) WITH (
-     'connector' = 'kafka',
-     'topic' = 'fm2',
-     'scan.startup.mode' = 'earliest-offset',
-     'properties.bootstrap.servers' = 'kafka:9094',
-     'format' = 'json'
- );
-```
-
-```
-SELECT * FROM location;
-```
-
-```
-CREATE TABLE sensor (
-     vehicle_id BIGINT,
-     engine_temperature INT,
-     average_rpm INT,
-     proctime AS PROCTIME() -- Only use processing time
- ) WITH (
-     'connector' = 'kafka',
-     'topic' = 'fm3',
-     'scan.startup.mode' = 'earliest-offset',
-     'properties.bootstrap.servers' = 'kafka:9094',
-     'format' = 'json'
- );
-```
-
-```
-SELECT * FROM sensor;
-```
-
-Data Integration and Transformation:
-Combines data from all three tables into a unified view for better insights and seamless analysis.
-```
-CREATE VIEW merged_view_fleet AS
- SELECT 
-     l.vehicle_id,
-     l.latitude,
-     l.longitude,
-     l.ts,
-     d.driver_name,
-     d.license_plate,
-     s.engine_temperature,
-     s.average_rpm
- FROM 
-     location l
- JOIN 
-     description d
- ON 
-     l.vehicle_id = d.vehicle_id
- JOIN 
-     sensor s
- ON 
-     l.vehicle_id = s.vehicle_id;
-```
-
-```
-SELECT * FROM merged_view_fleet;
-```
-
-Data Sink to Elasticsearch:
-Exports the unified data view to Elasticsearch for advanced analytics and visualization in Kibana.
-```
-CREATE TABLE merged_view_fleet_es (
-     vehicle_id BIGINT,
-     latitude DOUBLE,
-     longitude DOUBLE,
-     ts BIGINT,
-     driver_name STRING,
-     license_plate STRING,
-     engine_temperature INT,
-     average_rpm INT,
-     proctime TIMESTAMP(3)
- ) WITH (
-     'connector' = 'elasticsearch-7', -- Elasticsearch connector
-     'hosts' = 'http://elasticsearch:9200', -- Elasticsearch host
-     'index' = 'merged_view_fleet_data', -- Elasticsearch index name
-     'document-id.key-delimiter' = '-', -- Delimiter for document IDs
-     'format' = 'json', -- Data format
-     'sink.bulk-flush.max-actions' = '1' -- Immediate flush for testing (adjust for production)
- );
-```
-
-```
-INSERT INTO merged_view_fleet_es
- SELECT 
-     vehicle_id,
-     latitude,
-     longitude,
-     ts,
-     COALESCE(driver_name, 'Unknown') AS driver_name, -- Replace null with "Unknown"
-     COALESCE(license_plate, 'Unknown') AS license_plate, -- Replace null with "Unknown"
-     COALESCE(engine_temperature, 0) AS engine_temperature, -- Replace null with 0
-     COALESCE(average_rpm, 0) AS average_rpm, -- Replace null with 0
-     CURRENT_TIMESTAMP AS proctime
- FROM merged_view_fleet;
-```
-
-Dashboard Creation:
-Utilize Kibana at localhost:5601 to create interactive and visual dashboards for monitoring fleet data in real-time.
+  FROM merged_view_fleet;
+  ```
 
 
 
