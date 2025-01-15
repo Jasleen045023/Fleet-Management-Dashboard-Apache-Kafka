@@ -68,7 +68,7 @@ Using these datasets, the dashboard offers insights into:
 
 
 <h1>Implementation Workflow</h1>
-### **Data Generation and Transformation:** 
+Data Generation and Transformation:
 These commands generate synthetic data for the fleet (vehicles, locations, and sensors) and transform it into a usable format for Kafka topics. They simulate real-world streaming data.
 
 ```
@@ -123,7 +123,7 @@ python /home/ashok/Documents/fake/convert.py sens.json  # Converts the sensor da
 ./consumer.sh fm3  # Consumes and validates the streamed data from Kafka topic "fm3".
 ```
 
-### **SQL Table Creation:** 
+SQL Table Creation: 
 Defines structured tables for each data stream (description, location, and sensor) in Kafka. These tables enable querying and joining data using SQL.
 ```
 CREATE TABLE description (
@@ -183,7 +183,7 @@ CREATE TABLE sensor (
 SELECT * FROM sensor;
 ```
 
-### **Data Integration and Transformation:** 
+Data Integration and Transformation:
 Combines data from all three tables into a unified view for better insights and seamless analysis.
 ```
 CREATE VIEW merged_view_fleet AS
@@ -212,7 +212,7 @@ CREATE VIEW merged_view_fleet AS
 SELECT * FROM merged_view_fleet;
 ```
 
-### **Data Sink to Elasticsearch:** 
+Data Sink to Elasticsearch:
 Exports the unified data view to Elasticsearch for advanced analytics and visualization in Kibana.
 ```
 CREATE TABLE merged_view_fleet_es (
@@ -250,7 +250,7 @@ INSERT INTO merged_view_fleet_es
  FROM merged_view_fleet;
 ```
 
-### **Dashboard Creation:** 
+Dashboard Creation:
 Utilize Kibana at localhost:5601 to create interactive and visual dashboards for monitoring fleet data in real-time.
 
 
