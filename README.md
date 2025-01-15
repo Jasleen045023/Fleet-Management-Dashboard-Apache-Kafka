@@ -77,7 +77,7 @@ https://github.com/user-attachments/assets/53470cf3-f6a3-40a3-9c47-69f9a7b0d2e6
 
 <h1>Implementation Workflow</h1>
 
-**## 1. Transforming Data to JSON Format**
+**1. Transforming Data to JSON Format**
 
 - Script: Use the convert.py script to transform raw data into JSON key-value pairs.
 
@@ -88,7 +88,7 @@ https://github.com/user-attachments/assets/53470cf3-f6a3-40a3-9c47-69f9a7b0d2e6
 
 - Input: Provide the full path of the JSON file (e.g., desc.json).
 
-**## 2. Feeding Data into Kafka**
+**2. Feeding Data into Kafka**
 
 - Start Docker: Ensure Docker is running.
 
@@ -105,24 +105,24 @@ https://github.com/user-attachments/assets/53470cf3-f6a3-40a3-9c47-69f9a7b0d2e6
   ./consumer.sh fm1
   ```
 
-**## 3. SQL Table Creation and Data Streaming**
+**3. SQL Table Creation and Data Streaming**
 
-**## Table Definitions**
+**Table Definitions**
 
 - Description Table:
   ```
   CREATE TABLE description (
-    vehicle_id BIGINT,
-    driver_name STRING,
-    license_plate STRING,
-    proctime AS PROCTIME() -- Only use processing time
-  ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'fm1',
-    'scan.startup.mode' = 'earliest-offset',
-    'properties.bootstrap.servers' = 'kafka:9094',
-    'format' = 'json'
-  );
+     vehicle_id BIGINT,
+     driver_name STRING,
+     license_plate STRING,
+     proctime AS PROCTIME() -- Only use processing time
+ ) WITH (
+     'connector' = 'kafka',
+     'topic' = 'fm1',
+     'scan.startup.mode' = 'earliest-offset',
+     'properties.bootstrap.servers' = 'kafka:9094',
+     'format' = 'json'
+ );
   ```
 
 - Location Table:
@@ -158,7 +158,7 @@ https://github.com/user-attachments/assets/53470cf3-f6a3-40a3-9c47-69f9a7b0d2e6
   );
   ```
 
-**## Merged View**
+**Merged View**
 ```
 CREATE VIEW merged_view_fleet AS
 SELECT 
@@ -182,7 +182,7 @@ ON
     l.vehicle_id = s.vehicle_id;
 ```
 
-**## Export to Elasticsearch**
+**Export to Elasticsearch**
 
 - Create Elasticsearch Table:
   ```
