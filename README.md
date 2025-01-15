@@ -1,4 +1,4 @@
-# Fleet-Management-Dashboard-Kibana
+# Fleet Management Dashboard | Apache Kafka
 
 
 
@@ -10,6 +10,27 @@ The project focused on creating and visualizing a fleet management dashboard by 
 To accomplish this, three datasets were combined: Description, Location, and Sensors. Each dataset contributed unique and valuable data points that were integrated using Kafka’s streaming platform. The result was a comprehensive and interactive dashboard that provides meaningful metrics for fleet operations.
 
 Key tasks included defining the schema for each dataset in Avro format, streaming and merging the datasets using Kafka topics, and designing interactive visualizations on Kibana. This approach ensured a seamless and scalable process for analyzing large volumes of real-time data. By utilizing Kafka and Kibana, the project demonstrated how streaming and visualization technologies can enhance fleet management efficiency.
+
+
+
+<h1>Table of Contents</h1>
+
+1. [Learning Objectives](Learning Objectives)  
+2. [Objectives](#2-objectives)  
+3. [Key Findings](#3-key-findings)  
+   1. [Impact of Adaptation Strategies by Region](#1-impact-of-adaptation-strategies-by-region)  
+   2. [Economic Impact Distribution by Country](#2-economic-impact-distribution-by-country)  
+   3. [CO₂ Emissions Over Time by Region](#3-co₂-emissions-over-time-by-region)  
+   4. [Frequency of Extreme Weather Events by Region and Crop Type](#4-frequency-of-extreme-weather-events-by-region-and-crop-type)  
+   5. [Pesticide Use by Region and Crop Type](#5-pesticide-use-by-region-and-crop-type)  
+   6. [Economic Impact by Country and Adaptation Strategies](#6-economic-impact-by-country-and-adaptation-strategies)  
+   7. [Fertilizer Use by Region](#7-fertilizer-use-by-region)  
+   8. [Crop Yield Trends by Type](#8-crop-yield-trends-by-type)  
+   9. [Soil Health and Precipitation by Region](#9-soil-health-and-precipitation-by-region)  
+   10. [Irrigation Percentage by Region](#10-irrigation-percentage-by-region)  
+4. [Managerial Insights](#4-managerial-insights)  
+5. [Conclusion](#5-conclusion)  
+6. [License](#6-license)
 
 
 
