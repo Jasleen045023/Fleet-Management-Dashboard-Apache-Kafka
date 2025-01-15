@@ -25,7 +25,7 @@ Key tasks included defining the schema for each dataset in Avro format, streamin
 
 
 
-<h1>About the Fleet Management Dashboard</h1>
+<h1>About the Fleet Management Dataset</h1>
 
 The fleet management dashboard is designed to offer real-time insights into vehicle performance, driver activity, and engine health metrics. It combines data from three datasets:
 <ol>
@@ -42,6 +42,14 @@ Using these datasets, the dashboard offers insights into:
 <li>Driver Activity: Highlights distribution of data by driver name, providing insights into driver performance.</li>
 <li>Vehicle Performance Monitoring: Monitors engine temperature performance trends to ensure vehicle health.</li>
 </ol>
+
+
+
+
+<h1>Dashboard</h1>
+
+
+https://github.com/user-attachments/assets/53470cf3-f6a3-40a3-9c47-69f9a7b0d2e6
 
 
 
